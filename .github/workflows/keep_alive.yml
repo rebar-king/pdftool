@@ -1,0 +1,15 @@
+name: Keep Streamlit App Alive
+
+on:
+  schedule:
+    # 3일에 한 번씩 작동하라는 암호입니다 (UTC 자정 기준)
+    - cron: "0 0 */3 * *" 
+  workflow_dispatch: # 수동으로도 찔러볼 수 있는 버튼 생성
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit App
+        # 아래 주소로 몰래 접속만 하고 빠져나오라는 명령어입니다.
+        run: curl -s https://rebarking.streamlit.app > /dev/null
