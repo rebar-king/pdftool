@@ -2,8 +2,8 @@ name: Keep Streamlit App Alive
 
 on:
   schedule:
-    # 12시간마다 작동하라는 암호입니다 (매일 0시, 12시)
-    - cron: "0 */12 * * *" 
+    # 3시간마다 작동하라는 암호입니다 (매일 0시, 3시, 6시, 9시...)
+    - cron: "0 */3 * * *" 
   workflow_dispatch: # 수동으로도 찔러볼 수 있는 버튼 생성
 
 jobs:
@@ -11,5 +11,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Streamlit App
-        # 아래 주소로 몰래 접속만 하고 빠져나오라는 명령어입니다.
-        run: curl -s https://rebarking.streamlit.app > /dev/null
+        # 크롬 브라우저인 척 위장하고, Streamlit 앱의 심장(health)을 찌르는 명령어입니다.
+        run: curl -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -s https://rebarking.streamlit.app/_stcore/health > /dev/null
