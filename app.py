@@ -7,7 +7,7 @@ import fitz  # PyMuPDF
 
 # 넓은 화면(layout="wide")을 제거하여 중앙에 깔끔하게 모이도록 수정했습니다.
 st.set_page_config(page_title="나만의 PDF 종합 도구 프로")
-st.title("📄 PDF 종합 도구 (v4.1)")
+st.title("📄 PDF 편집툴 (v4.1)")
 
 # 세션 상태 초기화
 if 'pdf_list' not in st.session_state:
