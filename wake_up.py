@@ -1,7 +1,7 @@
 import time
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
-APP_URL = "https://rebarking.streamlit.app"
+APP_URL = "https://rebarking.streamlit.app/?admin=1234"
 
 def wake_up_app():
     with sync_playwright() as p:
