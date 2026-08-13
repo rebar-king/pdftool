@@ -1,4 +1,5 @@
 import streamlit as st
+import requests  # 새로 추가된 라이브러리
 from PyPDF2 import PdfReader, PdfWriter
 from PIL import Image
 import io
@@ -7,7 +8,39 @@ import fitz  # PyMuPDF
 
 # 넓은 화면(layout="wide")을 제거하여 중앙에 깔끔하게 모이도록 수정했습니다.
 st.set_page_config(page_title="나만의 PDF 종합 도구 프로")
-st.title("📄 PDF 편집툴 (v4.1)")
+
+# --- 👑 나 제외 이용 횟수 카운터 설정 ---
+ADMIN_SECRET = "1234" # 본인만 사용할 비밀번호
+COUNTER_KEY = "pdftool_rebarking_usage_counter"
+API_BASE = f"https://api.counterapi.dev/v1/{COUNTER_KEY}/total_uses"
+
+# 주소창에 ?admin=비밀번호 가 있는지 확인
+query_params = st.query_params
+if query_params.get("admin") == ADMIN_SECRET:
+    st.session_state["is_admin"] = True
+
+is_admin = st.session_state.get("is_admin", False)
+
+# [일반 사용자 접속 시] 카운트 +1 증가 (1회 접속 시 1번만 올라감)
+if not is_admin:
+    if "already_counted" not in st.session_state:
+        try:
+            requests.get(f"{API_BASE}/up", timeout=3)
+            st.session_state["already_counted"] = True
+        except:
+            pass
+
+# [관리자 접속 시] 카운트를 올리지 않고, 사이드바에 총 이용 횟수 표시
+if is_admin:
+    try:
+        res = requests.get(API_BASE, timeout=3).json()
+        total_count = res.get("count", 0)
+        st.sidebar.success(f"👑 **관리자 모드**\n\n나 제외 총 누적 방문: **{total_count}회**")
+    except:
+        st.sidebar.warning("카운터를 불러오지 못했습니다.")
+# ----------------------------------------
+
+st.title("📄 PDF 편집툴 (v4.2)")
 
 # 세션 상태 초기화
 if 'pdf_list' not in st.session_state:
