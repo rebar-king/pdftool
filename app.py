@@ -19,7 +19,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🖼️ PDF ➔ 이미지", # 위치 변경됨
     "🔗 PDF 병합", 
     "✂️ PDF 분할", 
-    "🔄 PDF 회전/삭제"
+    "↻ PDF 회전/삭제"
 ])
 
 # --- (1) 이미지 -> PDF 변환 ---
@@ -202,7 +202,7 @@ with tab5:
         
         col1, col2 = st.columns(2) # 이미 2분할 되어있던 부분
         with col1:
-            st.subheader("🔄 페이지 회전")
+            st.subheader("↻ 페이지 회전(시계 방향)")
             rotate_mode = st.radio("회전 범위", ["적용 안함", "전체 페이지", "일부 페이지"], key="rot_mode")
             rotate_angle = st.selectbox("회전 각도", [90, 180, 270], format_func=lambda x: f"{x}도 회전")
             rotate_pages = ""
