@@ -7,7 +7,7 @@ import zipfile
 import fitz  # PyMuPDF
 
 # 넓은 화면(layout="wide")을 제거하여 중앙에 깔끔하게 모이도록 수정했습니다.
-st.set_page_config(page_title="나만의 PDF 종합 도구 프로")
+st.set_page_config(page_title="나만의 PDF 종합 도구 프로", page_icon="📄")
 
 # --- 👑 나 제외 이용 횟수 카운터 설정 ---
 ADMIN_SECRET = "1234" # 본인만 사용할 비밀번호
