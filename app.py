@@ -7,6 +7,7 @@ import zipfile
 import fitz  # PyMuPDF
 
 # 넓은 화면(layout="wide")을 제거하여 중앙에 깔끔하게 모이도록 수정했습니다.
+# 페이지 기본 설정은 무조건 맨 처음에 딱 한 번만!
 st.set_page_config(page_title="PDF 편집툴", page_icon="📄")
 
 # --- 👑 나 제외 이용 횟수 카운터 설정 ---
