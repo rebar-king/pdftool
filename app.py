@@ -62,7 +62,7 @@ with tab1:
     col1, col2 = st.columns(2) # 2분할 적용
     
     with col1:
-        uploaded_images = st.file_uploader("이미지 파일 선택 (여러 개 가능)", type=["jpg", "jpeg", "png", "bmp", "gif", "webp"], accept_multiple_files=True, key="img_up")
+        uploaded_images = st.file_uploader("이미지 파일 선택 (여러 개 가능)", type=["jpg", "jpeg", "png", "bmp", "gif", "webp", "tif", "tiff"], accept_multiple_files=True, key="img_up")
         
     with col2:
         if uploaded_images:
