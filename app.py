@@ -6,7 +6,6 @@ import io
 import zipfile
 import fitz  # PyMuPDF
 
-# 넓은 화면(layout="wide")을 제거하여 중앙에 깔끔하게 모이도록 수정했습니다.
 # 페이지 기본 설정은 무조건 맨 처음에 딱 한 번만!
 st.set_page_config(page_title="PDF 편집툴", page_icon="📄")
 
@@ -47,7 +46,7 @@ st.title("📄 PDF 편집툴 (v4.3)")
 if 'pdf_list' not in st.session_state:
     st.session_state.pdf_list = []
 
-# 요청하신 대로 탭 순서를 변경했습니다!
+# 탭 설정
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🖼️ 이미지 ➔ PDF", 
     "🖼️ PDF ➔ 이미지", 
@@ -59,9 +58,10 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # --- (1) 이미지 -> PDF 변환 ---
 with tab1:
     st.header("이미지를 PDF로 변환")
-    col1, col2 = st.columns(2) # 2분할 적용
+    col1, col2 = st.columns(2)
     
     with col1:
+        # tif, tiff 확장자 추가됨
         uploaded_images = st.file_uploader("이미지 파일 선택 (여러 개 가능)", type=["jpg", "jpeg", "png", "bmp", "gif", "webp", "tif", "tiff"], accept_multiple_files=True, key="img_up")
         
     with col2:
@@ -77,7 +77,7 @@ with tab1:
 # --- (2) PDF ➔ 이미지 변환 ---
 with tab2:
     st.header("PDF를 이미지로 변환")
-    col1, col2 = st.columns(2) # 2분할 적용
+    col1, col2 = st.columns(2)
     
     with col1:
         pdf_to_img_file = st.file_uploader("이미지로 변환할 PDF 선택", type="pdf", key="pdf_img_conv_up")
@@ -111,7 +111,7 @@ with tab2:
 # --- (3) PDF 파일 병합 ---
 with tab3:
     st.header("여러 PDF 파일 병합")
-    col1, col2 = st.columns([1.2, 1]) # 좌측(파일 업로드)을 살짝 더 넓게 분할
+    col1, col2 = st.columns([1.2, 1])
     
     with col1:
         uploaded_pdfs = st.file_uploader("PDF 파일을 추가하세요", type="pdf", accept_multiple_files=True, key="pdf_merge_up")
@@ -154,8 +154,8 @@ with tab3:
 
             st.divider()
             
-            # 🌟 새롭게 추가된 A4 크기 통일 옵션 🌟
-            unify_a4 = st.checkbox("✅ 모든 페이지를 A4 크기로 통일 (가로/세로 방향 유지)", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
+            # 줄바꿈(\n)이 적용된 체크박스
+            unify_a4 = st.checkbox("✅ 모든 페이지를 A4 크기로 통일\n(가로/세로 방향 유지)", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
             
             if st.button("🔥 PDF 병합 실행", use_container_width=True, type="primary"):
                 writer = PdfWriter()
@@ -163,7 +163,6 @@ with tab3:
                     for config in pdf_configs:
                         reader = config["reader"]
                         
-                        # 추가할 페이지 목록 먼저 추출
                         pages_to_add = []
                         if config["mode"] == "전체":
                             pages_to_add = [page for page in reader.pages]
@@ -176,13 +175,11 @@ with tab3:
                                 else: 
                                     pages_to_add.append(reader.pages[int(part)-1])
                         
-                        # 추출된 페이지들을 A4 크기로 리사이징 및 병합
                         for page in pages_to_add:
                             if unify_a4:
                                 orig_w = float(page.mediabox.width)
                                 orig_h = float(page.mediabox.height)
                                 
-                                # 가로가 더 긴 문서면 '가로형 A4', 아니면 '세로형 A4'
                                 if orig_w > orig_h:
                                     page.scale_to(841.89, 595.28)
                                 else:
@@ -200,7 +197,7 @@ with tab3:
 # --- (4) PDF 파일 분할 ---
 with tab4:
     st.header("PDF 파일 분할")
-    col1, col2 = st.columns(2) # 2분할 적용
+    col1, col2 = st.columns(2)
     
     with col1:
         split_file = st.file_uploader("분할할 PDF 파일을 선택하세요", type="pdf", key="pdf_split_up")
@@ -216,7 +213,7 @@ with tab4:
             if split_mode == "사용자 지정 범위로 분할":
                 custom_range = st.text_input("분할 범위 입력 (예: 1, 2-3)", placeholder="예: 1, 2-3")
             
-            st.write("") # 간격 띄우기
+            st.write("")
             if st.button("✂️ PDF 분할 시작", use_container_width=True, type="primary"):
                 try:
                     zip_buffer = io.BytesIO()
@@ -258,7 +255,7 @@ with tab5:
         total_pages = len(reader.pages)
         st.info(f"선택된 파일: {edit_file.name} (총 {total_pages} 페이지)")
         
-        col1, col2 = st.columns(2) # 이미 2분할 되어있던 부분
+        col1, col2 = st.columns(2)
         with col1:
             st.subheader("↻ 페이지 회전(시계 방향)")
             rotate_mode = st.radio("회전 범위", ["적용 안함", "전체 페이지", "일부 페이지"], key="rot_mode")
