@@ -41,7 +41,7 @@ if is_admin:
         st.sidebar.warning("카운터를 불러오지 못했습니다.")
 # ----------------------------------------
 
-st.title("📄 PDF 편집툴 (v4.2)")
+st.title("📄 PDF 편집툴 (v4.3)")
 
 # 세션 상태 초기화
 if 'pdf_list' not in st.session_state:
@@ -50,7 +50,7 @@ if 'pdf_list' not in st.session_state:
 # 요청하신 대로 탭 순서를 변경했습니다!
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🖼️ 이미지 ➔ PDF", 
-    "🖼️ PDF ➔ 이미지", # 위치 변경됨
+    "🖼️ PDF ➔ 이미지", 
     "🔗 PDF 병합", 
     "✂️ PDF 분할", 
     "↻ PDF 회전/삭제"
@@ -74,7 +74,7 @@ with tab1:
                 st.success("✅ 변환 완료!")
                 st.download_button("📥 다운로드", data=pdf_bytes.getvalue(), file_name="images_converted.pdf", use_container_width=True)
 
-# --- (2) PDF ➔ 이미지 변환 (순서 변경됨) ---
+# --- (2) PDF ➔ 이미지 변환 ---
 with tab2:
     st.header("PDF를 이미지로 변환")
     col1, col2 = st.columns(2) # 2분할 적용
@@ -153,19 +153,43 @@ with tab3:
                     pdf_configs.append({"reader": reader, "mode": mode, "selection": page_selection})
 
             st.divider()
+            
+            # 🌟 새롭게 추가된 A4 크기 통일 옵션 🌟
+            unify_a4 = st.checkbox("✅ 모든 페이지를 A4 크기로 통일 (가로/세로 방향 유지)", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
+            
             if st.button("🔥 PDF 병합 실행", use_container_width=True, type="primary"):
                 writer = PdfWriter()
                 try:
                     for config in pdf_configs:
                         reader = config["reader"]
+                        
+                        # 추가할 페이지 목록 먼저 추출
+                        pages_to_add = []
                         if config["mode"] == "전체":
-                            for page in reader.pages: writer.add_page(page)
+                            pages_to_add = [page for page in reader.pages]
                         else:
                             for part in config["selection"].replace(" ", "").split(","):
                                 if "-" in part:
                                     start, end = map(int, part.split("-"))
-                                    for p in range(start-1, end): writer.add_page(reader.pages[p])
-                                else: writer.add_page(reader.pages[int(part)-1])
+                                    for p in range(start-1, end): 
+                                        pages_to_add.append(reader.pages[p])
+                                else: 
+                                    pages_to_add.append(reader.pages[int(part)-1])
+                        
+                        # 추출된 페이지들을 A4 크기로 리사이징 및 병합
+                        for page in pages_to_add:
+                            if unify_a4:
+                                orig_w = float(page.mediabox.width)
+                                orig_h = float(page.mediabox.height)
+                                
+                                # 가로가 더 긴 문서면 '가로형 A4', 아니면 '세로형 A4'
+                                if orig_w > orig_h:
+                                    page.scale_to(841.89, 595.28)
+                                else:
+                                    page.scale_to(595.28, 841.89)
+                            
+                            writer.add_page(page)
+
                     output = io.BytesIO()
                     writer.write(output)
                     st.success("✅ 병합 완료!")
