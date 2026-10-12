@@ -154,8 +154,9 @@ with tab3:
 
             st.divider()
             
-            # 줄바꿈(\n)이 적용된 체크박스
-            unify_a4 = st.checkbox("✅ 모든 페이지를 A4 크기로 통일\n(가로/세로 방향 유지)", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
+            # 제목을 짧게 줄이고 설명을 아래로 뺐습니다.
+            unify_a4 = st.checkbox("✅ 모든 페이지 A4 크기로 통일", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
+            st.caption("※ 가로/세로 방향은 원래대로 유지됩니다.")
             
             if st.button("🔥 PDF 병합 실행", use_container_width=True, type="primary"):
                 writer = PdfWriter()
