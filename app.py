@@ -1,18 +1,23 @@
 import streamlit as st
-import requests  # 새로 추가된 라이브러리
+import requests
 from PyPDF2 import PdfReader, PdfWriter
 from PIL import Image
 import io
 import zipfile
-import fitz  # PyMuPDF
+import fitz
 
 # 페이지 기본 설정은 무조건 맨 처음에 딱 한 번만!
 st.set_page_config(page_title="PDF 편집툴", page_icon="📄")
 
 # --- 👑 나 제외 이용 횟수 카운터 설정 ---
-ADMIN_SECRET = "1234" # 본인만 사용할 비밀번호
-COUNTER_KEY = "pdftool_rebarking_usage_counter"
+ADMIN_SECRET = "1234" 
+COUNTER_KEY = "pdftool_rebarking_usage_counter_v3"
 API_BASE = f"https://api.counterapi.dev/v1/{COUNTER_KEY}/total_uses"
+
+# API 서버가 봇으로 오해하지 않도록 크롬 브라우저인 척 위장하는 명함(Header) 추가
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+}
 
 # 주소창에 ?admin=비밀번호 가 있는지 확인
 query_params = st.query_params
@@ -21,26 +26,32 @@ if query_params.get("admin") == ADMIN_SECRET:
 
 is_admin = st.session_state.get("is_admin", False)
 
-# [일반 사용자 접속 시] 카운트 +1 증가 (1회 접속 시 1번만 올라감)
+# [일반 사용자 접속 시] 카운트 +1 증가
 if not is_admin:
     if "already_counted" not in st.session_state:
         try:
-            requests.get(f"{API_BASE}/up", timeout=3)
+            # 브라우저 위장 명함(HEADERS)을 함께 보냄
+            requests.get(f"{API_BASE}/up", headers=HEADERS, timeout=7)
             st.session_state["already_counted"] = True
-        except:
-            pass
+        except Exception as e:
+            # 에러가 나면 나중에 관리자 화면에서 볼 수 있도록 저장
+            st.session_state["counter_error"] = str(e)
 
 # [관리자 접속 시] 카운트를 올리지 않고, 사이드바에 총 이용 횟수 표시
 if is_admin:
     try:
-        res = requests.get(API_BASE, timeout=3).json()
+        res = requests.get(API_BASE, headers=HEADERS, timeout=7).json()
         total_count = res.get("count", 0)
         st.sidebar.success(f"👑 **관리자 모드**\n\n나 제외 총 누적 방문: **{total_count}회**")
-    except:
-        st.sidebar.warning("카운터를 불러오지 못했습니다.")
+        
+        # 카운터 통신 중 에러가 발생했었다면 원인 출력
+        if st.session_state.get("counter_error"):
+            st.sidebar.error(f"카운터 통신 에러 로그:\n{st.session_state['counter_error']}")
+    except Exception as e:
+        st.sidebar.warning(f"카운터를 불러오지 못했습니다. ({e})")
 # ----------------------------------------
 
-st.title("📄 PDF 편집툴 (v4.3)")
+st.title("📄 PDF 편집툴 (v4.4)")
 
 # 세션 상태 초기화
 if 'pdf_list' not in st.session_state:
@@ -61,7 +72,6 @@ with tab1:
     col1, col2 = st.columns(2)
     
     with col1:
-        # tif, tiff 확장자 추가됨
         uploaded_images = st.file_uploader("이미지 파일 선택 (여러 개 가능)", type=["jpg", "jpeg", "png", "bmp", "gif", "webp", "tif", "tiff"], accept_multiple_files=True, key="img_up")
         
     with col2:
@@ -154,8 +164,7 @@ with tab3:
 
             st.divider()
             
-            # 제목을 짧게 줄이고 설명을 아래로 뺐습니다.
-            unify_a4 = st.checkbox(" 모든 페이지 A4 크기로 통일", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
+            unify_a4 = st.checkbox("✅ 모든 페이지 A4 크기로 통일", value=True, help="체크 시 제각각인 문서 크기를 표준 A4 사이즈로 일정하게 맞춰줍니다.")
             st.caption("※ 가로/세로 방향은 원래대로 유지됩니다.")
             
             if st.button("🔥 PDF 병합 실행", use_container_width=True, type="primary"):
