@@ -6,52 +6,30 @@ import io
 import zipfile
 import fitz
 
-# 페이지 기본 설정은 무조건 맨 처음에 딱 한 번만!
+# 페이지 기본 설정은 맨 처음에 한 번만!
 st.set_page_config(page_title="PDF 편집툴", page_icon="📄")
 
-# --- 👑 나 제외 이용 횟수 카운터 설정 ---
-ADMIN_SECRET = "1234" 
-COUNTER_KEY = "pdftool_rebarking_usage_counter_v3"
-API_BASE = f"https://api.counterapi.dev/v1/{COUNTER_KEY}/total_uses"
+# --- 👑 초간단 방문자 카운터 (필터링 없이 전부 카운트) ---
+# 카운터 꼬임을 막기 위해 새 이름(v5)으로 0부터 깔끔하게 다시 시작합니다.
+COUNTER_URL = "https://api.counterapi.dev/v1/pdftool_rebarking_v5/visits"
 
-# API 서버가 봇으로 오해하지 않도록 크롬 브라우저인 척 위장하는 명함(Header) 추가
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-}
-
-# 주소창에 ?admin=비밀번호 가 있는지 확인
-query_params = st.query_params
-if query_params.get("admin") == ADMIN_SECRET:
-    st.session_state["is_admin"] = True
-
-is_admin = st.session_state.get("is_admin", False)
-
-# [일반 사용자 접속 시] 카운트 +1 증가
-if not is_admin:
-    if "already_counted" not in st.session_state:
-        try:
-            # 브라우저 위장 명함(HEADERS)을 함께 보냄
-            requests.get(f"{API_BASE}/up", headers=HEADERS, timeout=7)
-            st.session_state["already_counted"] = True
-        except Exception as e:
-            # 에러가 나면 나중에 관리자 화면에서 볼 수 있도록 저장
-            st.session_state["counter_error"] = str(e)
-
-# [관리자 접속 시] 카운트를 올리지 않고, 사이드바에 총 이용 횟수 표시
-if is_admin:
+# 사용자가 접속하면 무조건 카운트 +1 (단, 사이트 안에서 버튼을 누를 때마다 중복으로 올라가는 것만 방지)
+if "visited" not in st.session_state:
+    st.session_state["visited"] = True
     try:
-        res = requests.get(API_BASE, headers=HEADERS, timeout=7).json()
-        total_count = res.get("count", 0)
-        st.sidebar.success(f"👑 **관리자 모드**\n\n나 제외 총 누적 방문: **{total_count}회**")
-        
-        # 카운터 통신 중 에러가 발생했었다면 원인 출력
-        if st.session_state.get("counter_error"):
-            st.sidebar.error(f"카운터 통신 에러 로그:\n{st.session_state['counter_error']}")
-    except Exception as e:
-        st.sidebar.warning(f"카운터를 불러오지 못했습니다. ({e})")
-# ----------------------------------------
+        requests.get(f"{COUNTER_URL}/up", timeout=5)
+    except:
+        pass
 
-st.title("📄 PDF 편집툴 (v4.4)")
+# 사이드바에 현재 누적 카운트 표시
+try:
+    count_data = requests.get(COUNTER_URL, timeout=5).json()
+    st.sidebar.success(f"👀 총 누적 방문: **{count_data.get('count', 0)}회**")
+except:
+    st.sidebar.warning("카운터를 불러오지 못했습니다.")
+# -----------------------------------------------------------
+
+st.title("📄 PDF 편집툴 (v4.5)")
 
 # 세션 상태 초기화
 if 'pdf_list' not in st.session_state:
